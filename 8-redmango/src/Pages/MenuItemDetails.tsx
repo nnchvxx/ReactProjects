@@ -5,9 +5,15 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useUpdateShoppingCartMutation } from "../apis/shoppingCartApi";
 import { MainLoader, MiniLoader } from "../Components/Page/Common";
-//USER ID - b7ae37bf-09b1-4b47-9ce1-c963031d2920
+import { toastNotify } from "../Helper";
+import { apiResponse, userModel } from "../Interfaces";
+import { RootState } from "../Storage/Redux/store";
+import { useSelector } from "react-redux";
 
 function MenuItemDetails() {
+  const userData: userModel = useSelector(
+    (state: RootState) => state.userAuthStore
+  );
   const { menuItemId } = useParams();
   const { data, isLoading } = useGetMenuItemByIdQuery(menuItemId);
   const navigate = useNavigate();
@@ -25,12 +31,20 @@ function MenuItemDetails() {
   };
 
   const handleAddToCart = async (menuItemId: number) => {
+    if (!userData.id) {
+      navigate("/login");
+      return;
+    }
     setIsAddingToCart(true);
-    const response = await updateShoppingCart({
+    const response: apiResponse = await updateShoppingCart({
       menuItemId: menuItemId,
       updateQuantityBy: quantity,
-      userId: "b7ae37bf-09b1-4b47-9ce1-c963031d2920",
+      userId: userData.id,
     });
+
+    if (response.data && response.data.isSuccess) {
+      toastNotify("Item added to cart successfully!");
+    }
 
     setIsAddingToCart(false);
   };

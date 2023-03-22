@@ -1,38 +1,56 @@
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useInitiatePaymentMutation } from "../../../apis/paymentApi";
 import { inputHelper } from "../../../Helper";
-import { cartItemModel } from "../../../Interfaces";
+import { apiResponse, cartItemModel } from "../../../Interfaces";
 import { RootState } from "../../../Storage/Redux/store";
 import { MiniLoader } from "../Common";
+import { useNavigate } from "react-router";
 
-function CartPickUpDetails() {
+export default function CartPickUpDetails() {
   const [loading, setLoading] = useState(false);
   const shoppingCartFromStore: cartItemModel[] = useSelector(
     (state: RootState) => state.shoppingCartStore.cartItems ?? []
   );
+  const userData = useSelector((state: RootState) => state.userAuthStore);
 
   let grandTotal = 0;
   let totalItems = 0;
   const initialUserData = {
-    name: "",
-    email: "",
+    name: userData.fullName,
+    email: userData.email,
     phoneNumber: "",
   };
-
   shoppingCartFromStore?.map((cartItem: cartItemModel) => {
     totalItems += cartItem.quantity ?? 0;
     grandTotal += (cartItem.menuItem?.price ?? 0) * (cartItem.quantity ?? 0);
     return null;
   });
-
+  const navigate = useNavigate();
   const [userInput, setUserInput] = useState(initialUserData);
+  const [initiatePayment] = useInitiatePaymentMutation();
   const handleUserInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const tempData = inputHelper(e, userInput);
     setUserInput(tempData);
   };
+
+  useEffect(() => {
+    setUserInput({
+      name: userData.fullName,
+      email: userData.email,
+      phoneNumber: "",
+    });
+  }, [userData]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+
+    const { data }: apiResponse = await initiatePayment(userData.id);
+
+    navigate("/payment", {
+      state: { apiResult: data?.result, userInput },
+    });
   };
 
   return (
@@ -50,8 +68,8 @@ function CartPickUpDetails() {
             className="form-control"
             placeholder="name..."
             name="name"
-            required
             onChange={handleUserInput}
+            required
           />
         </div>
         <div className="form-group mt-3">
@@ -62,8 +80,8 @@ function CartPickUpDetails() {
             className="form-control"
             placeholder="email..."
             name="email"
-            required
             onChange={handleUserInput}
+            required
           />
         </div>
 
@@ -75,8 +93,8 @@ function CartPickUpDetails() {
             className="form-control"
             placeholder="phone number..."
             name="phoneNumber"
-            required
             onChange={handleUserInput}
+            required
           />
         </div>
         <div className="form-group mt-3">
@@ -88,7 +106,7 @@ function CartPickUpDetails() {
         <button
           type="submit"
           className="btn btn-lg btn-success form-control mt-3"
-          disabled={loading}
+          disabled={loading || shoppingCartFromStore.length == 0}
         >
           {loading ? <MiniLoader /> : "Looks Good? Place Order!"}
         </button>
@@ -96,5 +114,3 @@ function CartPickUpDetails() {
     </div>
   );
 }
-
-export default CartPickUpDetails;
