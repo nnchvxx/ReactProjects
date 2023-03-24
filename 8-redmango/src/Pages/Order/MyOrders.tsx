@@ -2,10 +2,10 @@ import React from "react";
 import { withAuth } from "../../HOC";
 import { useSelector } from "react-redux";
 import { RootState } from "../../Storage/Redux/store";
-import { useGetAllOrdersQuery } from "../../apis/orderApi";
 import OrderList from "../../Components/Page/Order/OrderList";
 import { MainLoader } from "../../Components/Page/Common";
 import { SD_Status } from "../../Utility/SD";
+import { useGetAllOrdersQuery } from "../../apis/orderApi";
 
 function MyOrders() {
   const userId = useSelector((state: RootState) => state.userAuthStore.id);

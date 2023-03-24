@@ -1,9 +1,9 @@
 import React from "react";
+import { orderHeaderModel } from "../../../Interfaces";
 import { MainLoader } from "../Common";
+import OrderListProps from "./orderListType";
 import { useNavigate } from "react-router-dom";
 import { getStatusColor } from "../../../Helper";
-import orderHeaderModel from "../../../Interfaces/orderHeaderModel";
-import OrderListProps from "./orderListType";
 
 function OrderList({ isLoading, orderData }: OrderListProps) {
   const navigate = useNavigate();
